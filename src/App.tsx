@@ -12,37 +12,46 @@ import { LayoutCard } from "./components/ui/LayoutCard";
 const AppContent: React.FC = () => {
     const { state, dispatch } = useAuth();
 
-    const handleLogout = () => {
-        localStorage.removeItem("user");
-        dispatch({ type: "LOGOUT" });
-    };
-
-    if (!state.isAuthenticated) {
-        return <RegistrationPage />;
-    }
-
     return (
-        <ProductProvider>
-            <div style={{ maxWidth: 900, margin: "40px auto" }}>
-                <LayoutCard
-                    title={
-                        <div style={{ display: "flex", justifyContent: "space-between" }}>
-                            <h2 style={{ margin: 0 }}>Catalog</h2>
-
-                            <Button
-                                variant="secondary"
-                                size="small"
-                                onClick={handleLogout}
+        <div
+            style={{
+                maxWidth: "700px",
+                margin: "40px auto",
+                padding: "20px",
+            }}
+        >
+            {!state.isAuthenticated ? (
+                <RegistrationPage />
+            ) : (
+                <ProductProvider>
+                    <LayoutCard
+                        title={
+                            <div
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                }}
                             >
-                                Выйти
-                            </Button>
-                        </div>
-                    }
-                >
-                    <CatalogPage />
-                </LayoutCard>
-            </div>
-        </ProductProvider>
+                                <h2 style={{ margin: 0 }}>Catalog</h2>
+
+                                <Button
+                                    variant="secondary"
+                                    size="small"
+                                    onClick={() => {
+                                        localStorage.removeItem("user");
+                                        dispatch({ type: "LOGOUT" });
+                                    }}
+                                >
+                                    Выйти
+                                </Button>
+                            </div>
+                        }
+                    >
+                        <CatalogPage />
+                    </LayoutCard>
+                </ProductProvider>
+            )}
+        </div>
     );
 };
 

@@ -5,7 +5,7 @@ import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
 import { LayoutCard } from "../../components/ui/LayoutCard";
 import { Badge } from "../../components/ui/Badge";
-import { useAuth } from "../../contexts/AuthContext/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 
 /* 1. Схема ZOD (источник правды Source of truth) */
 
