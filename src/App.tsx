@@ -12,6 +12,14 @@ import { LayoutCard } from "./components/ui/LayoutCard";
 const AppContent: React.FC = () => {
     const { state, dispatch } = useAuth();
 
+    const handleLogout = () => {
+        dispatch({ type: "LOGOUT" });
+    };
+
+    if (!state.isAuthenticated) {
+        return <RegistrationPage />;
+    }
+
     return (
         <div
             style={{
@@ -20,37 +28,28 @@ const AppContent: React.FC = () => {
                 padding: "20px",
             }}
         >
-            {!state.isAuthenticated ? (
-                <RegistrationPage />
-            ) : (
-                <ProductProvider>
-                    <LayoutCard
-                        title={
-                            <div
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                }}
-                            >
-                                <h2 style={{ margin: 0 }}>Catalog</h2>
-
-                                <Button
-                                    variant="secondary"
-                                    size="small"
-                                    onClick={() => {
-                                        localStorage.removeItem("user");
-                                        dispatch({ type: "LOGOUT" });
-                                    }}
-                                >
-                                    Выйти
-                                </Button>
-                            </div>
-                        }
+            <LayoutCard
+                title={
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                        }}
                     >
-                        <CatalogPage />
-                    </LayoutCard>
-                </ProductProvider>
-            )}
+                        <h2 style={{ margin: 0 }}>Catalog</h2>
+
+                        <Button
+                            variant="secondary"
+                            size="small"
+                            onClick={handleLogout}
+                        >
+                            Выйти
+                        </Button>
+                    </div>
+                }
+            >
+                <CatalogPage />
+            </LayoutCard>
         </div>
     );
 };
@@ -58,7 +57,9 @@ const AppContent: React.FC = () => {
 function App() {
     return (
         <AuthProvider>
-            <AppContent />
+            <ProductProvider>
+                <AppContent />
+            </ProductProvider>
         </AuthProvider>
     );
 }

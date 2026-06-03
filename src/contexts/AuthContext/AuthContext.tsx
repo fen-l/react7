@@ -13,20 +13,43 @@ type Action =
     | { type: "LOGIN"; payload: User }
     | { type: "LOGOUT" };
 
-const initialState: AuthState = {
-    user: null,
-    isAuthenticated: false,
+// Функция для загрузки состояния из localStorage
+const loadAuthState = (): AuthState => {
+    const saved = localStorage.getItem("user");
+    
+    if (saved) {
+        try {
+            const user = JSON.parse(saved);
+            return {
+                user: user,
+                isAuthenticated: true,
+            };
+        } catch (error) {
+            console.error("Failed to parse user:", error);
+        }
+    }
+    
+    return {
+        user: null,
+        isAuthenticated: false,
+    };
 };
 
 function authReducer(state: AuthState, action: Action): AuthState {
     switch (action.type) {
         case "LOGIN":
-            return {
+            const newState = {
                 user: action.payload,
                 isAuthenticated: true,
             };
+            // Сохраняем в localStorage сразу
+            localStorage.setItem("user", JSON.stringify(action.payload));
+            return newState;
 
         case "LOGOUT":
+            // Очищаем localStorage при выходе
+            localStorage.removeItem("user");
+            localStorage.removeItem("products"); // также очищаем продукты
             return {
                 user: null,
                 isAuthenticated: false,
@@ -44,21 +67,21 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-                                                                          children,
-                                                                      }) => {
-    const [state, dispatch] = useReducer(authReducer, initialState);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    // Инициализируем reducer с загруженными данными
+    const [state, dispatch] = useReducer(authReducer, loadAuthState());
 
-    useEffect(() => {
-        const saved = localStorage.getItem("user");
-
-        if (saved) {
-            dispatch({
-                type: "LOGIN",
-                payload: JSON.parse(saved),
-            });
-        }
-    }, []);
+    // Этот эффект теперь не нужен, так как мы загружаем при инициализации
+    // и сохраняем в reducer при каждом действии
+    // useEffect(() => {
+    //     const saved = localStorage.getItem("user");
+    //     if (saved) {
+    //         dispatch({
+    //             type: "LOGIN",
+    //             payload: JSON.parse(saved),
+    //         });
+    //     }
+    // }, []);
 
     return (
         <AuthContext.Provider value={{ state, dispatch }}>

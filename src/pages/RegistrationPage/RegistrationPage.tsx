@@ -20,6 +20,20 @@ const RegistrationSchema = z.object({
     }),
 });
 
+const occupations = [
+    { value: "", label: "Выберите профессию" },
+    { value: "programmer", label: "Программист" },
+    { value: "designer", label: "Дизайнер" },
+    { value: "marketer", label: "Маркетолог" },
+    { value: "manager", label: "Менеджер" },
+    { value: "teacher", label: "Учитель" },
+    { value: "doctor", label: "Врач" },
+    { value: "lawyer", label: "Юрист" },
+    { value: "accountant", label: "Бухгалтер" },
+    { value: "student", label: "Студент" },
+    { value: "other", label: "Другое" },
+];
+
 type FormData = z.infer<typeof RegistrationSchema>;
 
 /* 2. state + actions */
@@ -284,9 +298,13 @@ export const RegistrationPage: React.FC = () => {
     );
 
     const renderStep3 = () => (
-        <>
-            <Input
-                label="Occupation"
+    <>
+        <div style={{ marginBottom: "16px" }}>
+            <label style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}>
+                Профессия <span style={{ color: "red" }}>*</span>
+            </label>
+            
+            <select
                 value={state.formData.occupation}
                 onChange={(e) =>
                     dispatch({
@@ -295,29 +313,60 @@ export const RegistrationPage: React.FC = () => {
                         value: e.target.value,
                     })
                 }
-                error={state.errors.occupation}
-            />
+                style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: "6px",
+                    border: state.errors.occupation 
+                        ? "1px solid red" 
+                        : "1px solid #ccc",
+                    fontSize: "16px",
+                    backgroundColor: "white",
+                }}
+            >
+                <option value="" disabled>
+                    Выберите профессию
+                </option>
+                
+                {occupations
+                    .filter(occ => occ.value !== "") // убираем дубликат плейсхолдера
+                    .map((occ) => (
+                        <option key={occ.value} value={occ.value}>
+                            {occ.label}
+                        </option>
+                    ))}
+            </select>
 
-            <label style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                <input
-                    type="checkbox"
-                    checked={state.formData.agree}
-                    onChange={(e) =>
-                        dispatch({
-                            type: "UPDATE_FIELD",
-                            field: "agree",
-                            value: e.target.checked,
-                        })
-                    }
-                />
-                Я согласен с правилами
-            </label>
-
-            {state.errors.agree && (
-                <div style={{ color: "red" }}>{state.errors.agree}</div>
+            {state.errors.occupation && (
+                <div style={{ color: "red", marginTop: "4px", fontSize: "14px" }}>
+                    {state.errors.occupation}
+                </div>
             )}
-        </>
-    );
+        </div>
+
+        {/* Чекбокс согласия */}
+        <label style={{ display: "flex", gap: 8, marginTop: 12 }}>
+            <input
+                type="checkbox"
+                checked={state.formData.agree}
+                onChange={(e) =>
+                    dispatch({
+                        type: "UPDATE_FIELD",
+                        field: "agree",
+                        value: e.target.checked,
+                    })
+                }
+            />
+            Я согласен с правилами
+        </label>
+
+        {state.errors.agree && (
+            <div style={{ color: "red", marginTop: "4px" }}>
+                {state.errors.agree}
+            </div>
+        )}
+    </>
+);
 
     /* ui */
 

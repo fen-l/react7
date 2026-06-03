@@ -11,32 +11,42 @@ import { Product } from "../../schemas/product.schema";
 
 export const CatalogPage: React.FC = () => {
     const { state, dispatch } = useProducts();
-
-    const [editingProduct, setEditingProduct] =
-        useState<Product | null>(null);
-
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [showForm, setShowForm] = useState(false);
 
     useEffect(() => {
-        const load = async () => {
-            const data = await getProducts();
+        // Загружаем только если продукты пустые (первый раз или после очистки)
+        if (state.products.length === 0 && !state.loading) {
+            const load = async () => {
+                dispatch({ type: "SET_LOADING", payload: true });
+                
+                try {
+                    const data = await getProducts();
+                    dispatch({
+                        type: "SET_PRODUCTS",
+                        payload: data.products,
+                    });
+                } catch (error) {
+                    console.error("Failed to load products:", error);
+                } finally {
+                    dispatch({ type: "SET_LOADING", payload: false });
+                }
+            };
 
-            dispatch({
-                type: "SET_PRODUCTS",
-                payload: data.products,
-            });
-        };
-
-        load();
-    }, [dispatch]);
+            load();
+        }
+    }, [dispatch, state.products.length, state.loading]);
 
     const handleDelete = async (id: number) => {
-        await deleteProduct(id);
-
-        dispatch({
-            type: "DELETE_PRODUCT",
-            payload: id,
-        });
+        try {
+            await deleteProduct(id);
+            dispatch({
+                type: "DELETE_PRODUCT",
+                payload: id,
+            });
+        } catch (error) {
+            console.error("Failed to delete product:", error);
+        }
     };
 
     const handleEdit = (product: Product) => {
@@ -54,6 +64,10 @@ export const CatalogPage: React.FC = () => {
         setShowForm(false);
     };
 
+    if (state.loading && state.products.length === 0) {
+        return <div>Загрузка товаров...</div>;
+    }
+
     return (
         <div style={{ display: "grid", gap: 16 }}>
             <Button variant="primary" onClick={handleCreate}>
@@ -69,39 +83,43 @@ export const CatalogPage: React.FC = () => {
                 </LayoutCard>
             )}
 
-            {state.products.map((p) => (
-                <LayoutCard
-                    key={p.id}
-                    title={
-                        <div style={{ display: "flex", justifyContent: "space-between" }}>
-                            <span>Товар: {p.title}</span>
-                            <Badge color="blue" text={`ID: ${p.id}`} />
+            {state.products.length === 0 && !state.loading ? (
+                <div>Нет товаров. Добавьте первый товар!</div>
+            ) : (
+                state.products.map((p) => (
+                    <LayoutCard
+                        key={p.id}
+                        title={
+                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                <span>Товар: {p.title}</span>
+                                <Badge color="blue" text={`ID: ${p.id}`} />
+                            </div>
+                        }
+                    >
+                        <div style={{ marginBottom: 12 }}>
+                            <strong>Цена:</strong> ${p.price}
                         </div>
-                    }
-                >
-                    <div style={{ marginBottom: 12 }}>
-                        <strong>Цена:</strong> ${p.price}
-                    </div>
 
-                    <div style={{ display: "flex", gap: 8 }}>
-                        <Button
-                            variant="secondary"
-                            size="small"
-                            onClick={() => handleEdit(p)}
-                        >
-                            Изменить
-                        </Button>
+                        <div style={{ display: "flex", gap: 8 }}>
+                            <Button
+                                variant="secondary"
+                                size="small"
+                                onClick={() => handleEdit(p)}
+                            >
+                                Изменить
+                            </Button>
 
-                        <Button
-                            variant="danger"
-                            size="small"
-                            onClick={() => handleDelete(p.id)}
-                        >
-                            Удалить
-                        </Button>
-                    </div>
-                </LayoutCard>
-            ))}
+                            <Button
+                                variant="danger"
+                                size="small"
+                                onClick={() => handleDelete(p.id)}
+                            >
+                                Удалить
+                            </Button>
+                        </div>
+                    </LayoutCard>
+                ))
+            )}
         </div>
     );
 };
